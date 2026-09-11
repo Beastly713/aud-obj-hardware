@@ -11,6 +11,7 @@ This document is derived primarily from the existing evidence map. It preserves 
 
 - **EM** — carried forward from the existing evidence map.
 - **SV** — supplementary verification performed for this document.
+- **INV** — direct physical-board observations and prior basic working status recorded in the [canonical hardware inventory](hardware_inventory.md).
 - **OQ** — open or unresolved question; not an assumption.
 
 Evidence strength is assigned to a particular claim, not to a sensor in the abstract:
@@ -43,12 +44,14 @@ Where the third level is not verified, the uncertainty is stated explicitly.
 
 The current candidates are recorded here without selecting, removing, or ranking them for final inclusion:
 
-1. **ESP32 DevKit V1, 30-pin** — an ESP-WROOM-32-family microcontroller development board. “DevKit V1” is a generic carrier-board description; the exact carrier revision and manufacturer remain to be verified.
-2. **ProtoCentral tinyGSR GSR/EDA Sensor Board** — legacy hardware, PCB marking **11/22**. The exact schematic revision has not been independently matched to the marking; it is treated provisionally as the original/legacy family, not the current v3 board.
-3. **CJMCU-8232 AD8232 Single-Lead ECG / Heart-Rate Monitor Sensor Module** — PCB marking **VS82**. The AD8232 IC is documented; the exact VS82 passive network and layout are not verified from an authoritative CJMCU document.
-4. **SmartElex MAX30101 PPG / Photodetector Sensor Breakout Board** — exact SmartElex schematic, optical window, and implementation details are not verified from primary board documentation.
-5. **SmartElex TMP117 Digital Temperature Sensor Breakout Board** — the TMP117 IC is a local digital temperature sensor; skin-temperature meaning depends on thermal coupling and the board's construction.
-6. **GY-521 MPU-6050** — a generic 6-axis accelerometer + gyroscope breakout module. GY-521 boards are an ecosystem of implementations; exact regulator, pull-ups, filtering, and mounting details are board-specific.
+1. **ESP32 DEVKITV1, 30-pin, ESP-WROOM-32-family controller board** — the physical carrier marking, 30-pin format, ESP-WROOM-32-family module, Micro-USB, EN/BOOT buttons, and standard header labels are verified; exact carrier manufacturer, USB-UART device, regulator, and ADC performance remain unresolved.
+2. **ProtoCentral PC-tinyGSR legacy EDA/GSR board, PCB marking 12/22** — direct inspection verifies the ProtoCentral/PC-tinyGSR identity, Qwiic-style connectors, 3.5 mm electrode connector, `BASELINE` trimmer, `L324` analog-IC marking, and 3.3–5 V VCC/IO silkscreen. Exact ADC/interface IC, I²C address, trimmer transfer function, raw-value-to-conductance conversion, and quantitative calibration remain unresolved; it is treated as the original/legacy family, not the current v3 board.
+3. **CJMCU-8232 AD8232 single-lead ECG/heart-monitor module, PCB marking V502** — direct inspection verifies the board marking, AD8232 IC, labeled supply/output/leads-off connections, and electrode connections. The exact V502 passive network and analog performance remain unresolved.
+4. **SmartElex MAX30101 PPG/Photodetector breakout board** — direct inspection verifies the SmartElex/MAX30101 identity, exposed `INT`, and silkscreen observation `ADR: 0x52`; the actual address convention, schematic, optical window, and implementation details remain unresolved.
+5. **SmartElex TMP117 digital temperature sensor breakout board** — direct inspection verifies exposed `INT`, address-selection markings for `0x48`–`0x4B`, and a narrowed/cut-out central sensor region that appears intended to reduce thermal coupling. The selected address and thermal/electrical behavior remain unresolved.
+6. **GY-521 MPU-6050 6-axis accelerometer + gyroscope IMU module** — direct inspection verifies the GY-521 marking, MPU-6050 main IC, and exposed connector pins. Exact regulator, pull-ups, filtering, genuine-vs-compatible silicon status, and mounting behavior remain unresolved.
+
+The inventory also records basic prior working status: the ESP32 and all five sensor boards have previously operated successfully at a basic functional level. This is distinct from signal-quality, timing, calibration, and validation evidence.
 
 The evidence map and this document use the component names above as candidate identities. They do not imply that the candidates are equivalent to certified medical monitors or that all IC features are present on the stated breakouts.
 
@@ -87,11 +90,11 @@ The layers must not be conflated. An ECG voltage waveform is not HRV; HRV is not
 
 | Modality | Direct measurement | Important derived features | Physiological domain | Possible AUD relevance | Evidence strength | Primary candidate role | Major limitations |
 |---|---|---|---|---|---|---|---|
-| ECG / AD8232 | Conditioned single-lead cardiac biopotential voltage | R peaks, HR, RR/NN, RMSSD, SDNN, quality flags | Cardiac timing; autonomic cardiovascular association | Lower HRV in AUD groups; mixed withdrawal evidence; exploratory craving/relapse context | **A** measurement; **B** AUD-group HRV; **C** individual/context-specific AUD use | Primary physiological measurement; derived feature source; cardiovascular/autonomic information | Motion/EMG, electrodes, respiration, posture, ectopy, exact VS82 filters/gain, ADC timing |
-| PPG / MAX30101 | Reflected red/IR/green optical photodetector samples | Pulse rate, inter-pulse intervals, PRV, morphology, perfusion proxies | Peripheral pulse and vascular/perfusion dynamics | Alcohol-related rate changes and multimodal intoxication findings are exploratory; PRV is not ECG HRV | **A** pulse measurement; **B** related variability science; **C** AUD use | Complementary cardiovascular/peripheral measurement; ECG cross-check; fusion input | Motion, pressure, site, perfusion, temperature, optical geometry, algorithm/validation, exact breakout |
+| ECG / AD8232 | Conditioned single-lead cardiac biopotential voltage | R peaks, HR, RR/NN, RMSSD, SDNN, quality flags | Cardiac timing; autonomic cardiovascular association | Lower HRV in AUD groups; mixed withdrawal evidence; exploratory craving/relapse context | **A** measurement; **B** AUD-group HRV; **C** individual/context-specific AUD use | Primary physiological measurement; derived feature source; cardiovascular/autonomic information | Motion/EMG, electrodes, respiration, posture, ectopy, exact V502 filters/gain, ADC timing |
+| PPG / MAX30101 | Reflected red/IR/green optical photodetector samples | Pulse rate, inter-pulse intervals, PRV, morphology, perfusion proxies | Peripheral pulse and vascular/perfusion dynamics | Alcohol-related rate changes and multimodal intoxication findings are exploratory; PRV is not ECG HRV | **A** pulse measurement; **B** related variability science; **C** AUD use | Complementary cardiovascular/peripheral measurement; ECG cross-check; fusion input | Motion, pressure, site, perfusion, temperature, optical geometry, algorithm/validation, exact breakout address convention and schematic; `INT` is physically exposed |
 | EDA / legacy tinyGSR | Skin electrical response; legacy board output is provisionally relative | Tonic trend, phasic responses, relative event/amplitude features | Sympathetic sudomotor activity / arousal | Alcohol-cue response and AUD-recovery stress monitoring are exploratory; craving/relapse direct use insufficient | **A** general EDA physiology; **C** AUD cue/recovery; **D** withdrawal context | Potentially complementary sympathetic-arousal channel; longitudinal/fusion input | Legacy trimmer-set output, contact/motion, sweat, temperature, hydration, nonspecific arousal |
-| Peripheral temperature / TMP117 | Local IC/die temperature; skin estimate only with validated thermal coupling | Baseline, slope, local trend, contact-context features | Peripheral thermal regulation and vascular/perfusion context | Alcohol-related temperature shifts exist but are environmentally and physiologically nonspecific | **A** IC temperature measurement; **C** AUD-related trend | Primarily contextual/peripheral signal; PPG/EDA interpretation support | Ambient conditions, body site, coupling, airflow, activity, perfusion, self-heating, illness |
-| Motion + inertial sensing / MPU6050 | 3-axis acceleration and 3-axis angular velocity | Activity, stillness, posture proxies, gait/sway, tremor energy, quality flags | Motor activity and measurement context | Moderate evidence for withdrawal-tremor quantification; exploratory intoxication/gait evidence | **A** inertial measurement; **B** withdrawal-tremor feature; **C** intoxication/gait | Motion-artifact identification; movement/activity information; exploratory motor feature source | Placement/orientation, loose mounting, voluntary movement, task dependence, tremor confounders |
+| Peripheral temperature / TMP117 | Local IC/die temperature; skin estimate only with validated thermal coupling | Baseline, slope, local trend, contact-context features | Peripheral thermal regulation and vascular/perfusion context | Alcohol-related temperature shifts exist but are environmentally and physiologically nonspecific | **A** IC temperature measurement; **C** AUD-related trend | Primarily contextual/peripheral signal; PPG/EDA interpretation support | Ambient conditions, body site, coupling, airflow, activity, perfusion, self-heating, illness, actual selected address, thermal-island behavior |
+| Motion + inertial sensing / MPU-6050 | 3-axis acceleration and 3-axis angular velocity | Activity, stillness, posture proxies, gait/sway, tremor energy, quality flags | Motor activity and measurement context | Moderate evidence for withdrawal-tremor quantification; exploratory intoxication/gait evidence | **A** inertial measurement; **B** withdrawal-tremor feature; **C** intoxication/gait | Motion-artifact identification; movement/activity information; exploratory motor feature source | Placement/orientation, loose mounting, voluntary movement, task dependence, tremor confounders, exact carrier electronics and timing |
 | ESP32 system role | No physiological quantity; receives sensor data | Timestamps, buffers, quality metadata, software features | Acquisition and coordination infrastructure | Enables longitudinal multimodal measurement but has no AUD physiological meaning | **N/A** as a physiological modality | Acquisition/controller; interface; timestamping; transport | Carrier-board variation, ADC behavior, scheduling, timestamp jitter, packet loss, RF/power noise |
 
 ## 5. ECG / AD8232
@@ -115,7 +118,7 @@ The measurement is single-lead and depends on electrode geometry and placement. 
 
 The expected raw output is a conditioned analog voltage centered on the module's reference/bias, sampled by the ESP32 ADC if that acquisition path is used. The AD8232 IC documentation supports adjustable high-pass and low-pass filtering, gain, lead-off detection, and right-leg-drive-related circuitry ([H1], [H2]).
 
-The exact CJMCU-8232 **VS82** board implementation is not verified. The board's passive filter cutoff frequencies, gain-setting components, reference arrangement, electrode/RLD topology, tolerances, output range, and lead-off wiring must therefore remain open. A safe description is **conditioned single-lead ECG-like analog data**, not a claim about the exact bandwidth or clinical waveform fidelity.
+The physical board identity is verified in the canonical inventory as CJMCU-8232, PCB marking **V502**, with the AD8232 IC and labeled supply/output/leads-off/electrode connections. The exact V502 passive filter cutoff frequencies, gain-setting components, reference arrangement, electrode/RLD topology, tolerances, output range, lead-off behavior, and measured analog performance remain open. A safe description is **conditioned single-lead ECG-like analog data**, not a claim about the exact bandwidth or clinical waveform fidelity.
 
 ### 5.3 Candidate derived features
 
@@ -150,7 +153,7 @@ Reactive HRV findings in craving and relapse research are heterogeneous. The evi
 
 | Claim | Strength | Reason and boundary |
 |---|---|---|
-| A conditioned single-lead ECG waveform can be acquired with an AD8232-class front end | **A** | Mature instrumentation concept; exact VS82 implementation still needs verification ([H1], [H2]). |
+| A conditioned single-lead ECG waveform can be acquired with an AD8232-class front end | **A** | Mature instrumentation concept; exact V502 implementation still needs electrical characterization ([H1], [H2], [INV]). |
 | R peaks, HR, RR/NN intervals, and standard HRV features can be derived from adequate ECG | **A** | Established measurement practice when signal quality and processing requirements are met ([P1], [P2]). |
 | AUD groups often show lower HRV than controls | **B** | Meta-analytic support, but high heterogeneity and population-level inference ([A1]). |
 | HRV is a useful general AUD autonomic research feature | **B** | Repeated association and physiological rationale, but nonspecific and not an individual diagnostic rule ([A1], [A2], [A3]). |
@@ -166,7 +169,7 @@ Important limitations include:
 - Respiration, posture, exercise, recovery from exercise, and recording duration.
 - Ectopic beats, arrhythmia, missed R peaks, false R peaks, filtering artifacts, and poor-quality windows.
 - Age, fitness, sleep/circadian state, illness, fever, hydration, pain, anxiety, medication, nicotine, and caffeine.
-- Unknown VS82 filter and gain settings, which limit claims about morphology and HRV suitability.
+- Unknown V502 filter and gain settings, which limit claims about morphology and HRV suitability.
 
 The AD8232 datasheet describes filtering and motion-related design goals at IC level, but those features do not guarantee artifact-free data from the CJMCU breakout ([H2]).
 
@@ -191,12 +194,12 @@ Its highest-value multimodal role may be as an electrical timing reference again
 - “A low RMSSD proves craving, stress, or withdrawal.”
 - “A high heart rate proves alcohol withdrawal.”
 - “LF/HF is a direct sympathetic/parasympathetic balance measurement.”
-- “The VS82 module has a particular clinical bandwidth, gain, or morphology fidelity” before its schematic is verified.
+- “The V502 module has a particular clinical bandwidth, gain, or morphology fidelity” before its schematic is verified.
 - “The hobby module is a clinically validated arrhythmia monitor.”
 
 ### 5.10 Open questions
 
-1. What exact CJMCU VS82 schematic, gain, filter cutoffs, and electrode/RLD topology are present?
+1. What exact CJMCU V502 schematic, gain, filter cutoffs, and electrode/RLD topology are present?
 2. Does the physical module preserve R-peak timing adequately for the HRV features under consideration?
 3. What recording durations and quality thresholds would be used for each feature?
 4. How will ectopy, missed beats, and low-quality intervals be identified and handled?
@@ -221,7 +224,7 @@ LED illumination + tissue reflection/scattering
 
 ### 6.2 Raw output
 
-The expected raw output is digital optical data obtained over the IC's digital interface. The SmartElex board is reported by a reseller as a MAX30101 breakout with red/IR/green LEDs and an I²C interface, but no primary SmartElex schematic or clinical algorithm was located ([H11]). The exact optical window, LED-current configuration, power conversion, board layout, mechanical contact, and software are therefore not treated as verified module capabilities.
+The expected raw output is digital optical data obtained over the IC's digital interface. Direct inspection recorded in the canonical inventory verifies the SmartElex MAX30101 Photodetector board and exposed `INT` pin, and observes the board silkscreen `ADR: 0x52`. That marking is not treated as a verified 7-bit I²C address. The board is also reported by a reseller as a MAX30101 breakout with red/IR/green LEDs and an I²C interface, but no primary SmartElex schematic or clinical algorithm was located ([H11]). The exact optical window, LED-current configuration, power conversion, board layout, mechanical contact, address convention, interrupt behavior, and software are therefore not treated as verified module capabilities ([INV]).
 
 The IC's product description may call it a heart-rate and pulse-oximetry sensor, but that does not mean the exact breakout directly outputs a validated heart rate or SpO₂. Pulse rate and oxygen saturation require downstream algorithms, signal-quality checks, optical geometry, calibration, and validation. Red/IR hardware alone is not a validated pulse oximeter ([H3], [H14]).
 
@@ -323,17 +326,17 @@ Possible roles justified by current evidence are:
 
 EDA describes changes in the electrical properties of the skin associated with sweat-gland activity. Exosomatic EDA systems apply an electrical excitation and measure conductance or resistance; eccrine sweat glands are predominantly under sympathetic cholinergic control ([P8], [P9]).
 
-The exact candidate is a **legacy ProtoCentral tinyGSR board** with PCB marking **11/22**. ProtoCentral's current v3 page explicitly distinguishes the redesigned v3 from the earlier board: v3 reports absolute microsiemens, whereas the earlier board produced a relative, trimmer-set reading for which universal conversion to real units was not available ([H9]). The marking has not been independently matched to a released schematic revision.
+The exact candidate is a **ProtoCentral PC-tinyGSR legacy EDA/GSR board** with PCB marking **12/22**. Direct inspection recorded in the canonical inventory verifies the ProtoCentral/PC-tinyGSR identity, Qwiic-style connectors, 3.5 mm electrode connector, physical `BASELINE` trimmer, `L324` analog-IC marking, and 3.3–5 V VCC/IO silkscreen. ProtoCentral's current v3 page explicitly distinguishes the redesigned v3 from the earlier board: v3 reports absolute microsiemens, whereas the earlier board produced a relative, trimmer-set reading for which universal conversion to real units was not available ([H9], [INV]). The exact ADC/interface IC, I²C address, trimmer transfer function, raw-value-to-conductance conversion, and quantitative calibration remain unresolved.
 
 Accordingly, the direct measurement statement for this project must remain conditional:
 
-> The legacy board produces a digitized, relative front-end response associated with skin conductance/resistance; absolute µS output is not verified for the stated 11/22 unit.
+> The legacy board produces a digitized, relative front-end response associated with skin conductance/resistance; absolute µS output is not verified for the stated 12/22 unit.
 
 ### 7.2 Raw output
 
-If the supplied 11/22 unit is the legacy implementation described by ProtoCentral, its output should be handled as a trimmer-dependent ADC response or relative digital value. The older tutorial describes the legacy implementation and baseline adjustment, while the current product page states that the original board's hand-trimmed behavior prevents a universal conversion to absolute conductance ([H9], [H10]).
+The supplied 12/22 unit should be handled as a trimmer-dependent ADC response or relative digital value. The older tutorial describes the legacy implementation and baseline adjustment, while the current product page states that the original board's hand-trimmed behavior prevents a universal conversion to absolute conductance ([H9], [H10], [INV]).
 
-The exact board revision, ADC path, trimmer setting, electrode connection, and repeatability of the physical unit remain open. Until verified, the safe raw-data representation is **relative counts or within-unit response**, not calibrated absolute SCL/SCR in µS.
+The board identity and visible trimmer are verified, but the ADC/interface path, I²C address, trimmer setting/transfer function, electrode connection, and repeatability of the physical unit remain open. Until characterized, the safe raw-data representation is **relative counts or within-unit response**, not calibrated absolute SCL/SCR in µS.
 
 ### 7.3 Candidate derived features
 
@@ -393,7 +396,7 @@ The 2026 intoxication pilot found EDA changes in a controlled multimodal setting
 - Respiration, speech, sound/noise context, physical effort, and cognitive effort.
 - Medication, anticholinergic effects, nicotine, caffeine, anxiety, pain, and illness.
 - Baseline drift, acclimation time, ADC behavior, saturation, and hardware noise.
-- The legacy board's hand-trimmed front end and unknown 11/22 revision, which add cross-device and cross-session comparability problems.
+- The legacy board's hand-trimmed front end and unresolved electrical behavior of the verified 12/22 board, which add cross-device and cross-session comparability problems.
 
 A recent EDA artifact review specifically identifies movement, respiration, speech, temperature, humidity, environmental context, and electrode/system artifacts as important influences in ambulatory recordings ([P10]).
 
@@ -423,7 +426,7 @@ Possible roles are:
 
 ### 7.10 Open questions
 
-1. Which exact schematic and legacy firmware/ADC path correspond to PCB marking 11/22?
+1. Which exact schematic and legacy firmware/ADC path are present on the verified PCB marking 12/22?
 2. Can the trimmer setting and board-specific response be measured and reproduced?
 3. Are relative features stable across days, electrode changes, and sessions?
 4. What electrode site and contact arrangement will be used later, and how does it affect interpretation?
@@ -446,7 +449,7 @@ It approximates skin temperature only when mechanical and thermal coupling make 
 
 ### 8.2 Raw output
 
-The expected raw output is a digital temperature code read over the TMP117's I²C-compatible interface. The exact SmartElex board schematic, thermal path, exposed sensing surface, board mass, neighboring heat sources, and mechanical coupling have not been verified from primary SmartElex documentation ([H12]).
+The expected raw output is a digital temperature code read over the TMP117's I²C-compatible interface. Direct inspection recorded in the canonical inventory verifies the SmartElex board's exposed `INT` pin, address-selection markings for `0x48`–`0x4B`, and a narrowed/cut-out central sensor region. The selected address, exact board schematic, thermal path, exposed sensing surface, board mass, neighboring heat sources, and mechanical coupling remain unresolved ([H12], [INV]). The narrowed/cut-out region appears intended to reduce thermal coupling, but it does not guarantee accurate skin temperature.
 
 The temperature code should initially be described as **local board/sensor temperature**. A skin-temperature estimate requires an empirical comparison with a reference under the intended contact and environmental conditions.
 
@@ -526,7 +529,7 @@ Temperature is currently better justified as a context channel than as a primary
 
 ### 8.10 Open questions
 
-1. What exact thermal path and skin-contact arrangement are present on the SmartElex board?
+1. What exact thermal path and skin-contact arrangement are present on the SmartElex board, and which address-selection marking is actually selected?
 2. What are its response time, offset, and self-heating relative to a reference skin thermometer?
 3. What body site and environmental range are relevant to later testing?
 4. Will ambient temperature or airflow be measured or annotated?
@@ -534,7 +537,7 @@ Temperature is currently better justified as a context channel than as a primary
 6. Does temperature explain meaningful PPG amplitude/perfusion or EDA baseline variation after activity and environment are modeled?
 7. Does a personal temperature trend add independent AUD-recovery information?
 
-## 9. IMU / MPU6050
+## 9. IMU / MPU-6050
 
 ### 9.1 Direct measurement
 
@@ -543,13 +546,13 @@ The MPU-6050 IC directly measures:
 - three-axis accelerometer output representing specific force, including gravity when stationary;
 - three-axis gyroscope output representing angular velocity.
 
-TDK documents the MPU-6050 as an obsolete 6-axis digital-output device with I²C and selectable accelerometer and gyroscope full-scale ranges ([H6], [H7]). The GY-521 is a generic breakout family, so its regulator, pull-ups, layout, filtering, and mechanical mounting are not treated as verified from the IC documentation.
+TDK documents the MPU-6050 as an obsolete 6-axis digital-output device with I²C and selectable accelerometer and gyroscope full-scale ranges ([H6], [H7]). Direct inspection recorded in the canonical inventory verifies the physical GY-521 marking, MPU-6050 main IC, and exposed `VCC`, `GND`, `SCL`, `SDA`, `XDA`, `XCL`, `AD0`, and `INT` pins. The GY-521 remains a generic breakout family for purposes of the unresolved regulator, pull-ups, layout, filtering, genuine-vs-compatible-silicon status, and mechanical mounting questions ([INV]).
 
 The IMU does not directly measure posture category, tremor, restlessness, gait impairment, intoxication, withdrawal, or alcohol.
 
 ### 9.2 Raw output
 
-The expected raw output is digital axis data and status/register information over I²C. The raw axes depend on sensor orientation, calibration, full-scale configuration, sample settings, digital filtering, board vibration, and mounting. The GY-521 board's exact configuration and accessible features require physical verification.
+The expected raw output is digital axis data and status/register information over I²C. The raw axes depend on sensor orientation, calibration, full-scale configuration, sample settings, digital filtering, board vibration, and mounting. The physical board identity and connector labels are verified, while the GY-521's exact electrical configuration and performance remain unresolved.
 
 ### 9.3 Candidate derived features
 
@@ -641,7 +644,7 @@ The strongest general role is measurement-quality and activity context. The stro
 
 ## 10. ESP32 System Role
 
-ESP32 is not a physiological sensing modality. The ESP-WROOM-32-family documentation supports a general-purpose MCU module with GPIO, I²C, SPI, UART, ADC, Wi-Fi, and Bluetooth capabilities ([H8]). “ESP32 DevKit V1 30-pin” remains a generic carrier-board identity; exact pin exposure, USB-UART device, regulator, ADC routing, and clone-specific behavior are not locked by that name.
+ESP32 is not a physiological sensing modality. The ESP-WROOM-32-family documentation supports a general-purpose MCU module with GPIO, I²C, SPI, UART, ADC, Wi-Fi, and Bluetooth capabilities ([H8]). Direct inspection recorded in the canonical inventory verifies the physical `ESP32 DEVKITV1` carrier marking, 30 pins, ESP-WROOM-32-family module, Micro-USB, EN/BOOT buttons, and standard header labels. The exact carrier manufacturer, USB-UART device, regulator, ADC routing, and this unit's ADC performance remain unresolved ([INV]).
 
 ### 10.1 Acquisition / controller candidate
 
@@ -649,7 +652,7 @@ Potentially justified roles include receiving sensor data, controlling acquisiti
 
 ### 10.2 Sensor-interface platform candidate
 
-The ESP32 may provide digital interfaces for the I²C sensors and an ADC path for the AD8232 analog output, subject to verification of the exact board, input conditioning, electrical levels, and acquisition behavior. This document does not define exact pins, wiring, sampling rates, or final acquisition architecture.
+The ESP32 may provide digital interfaces for the I²C sensors and an ADC path for the AD8232 analog output, subject to verification of the carrier's input conditioning, electrical levels, and acquisition behavior. This document does not define exact pins, wiring, sampling rates, or final acquisition architecture.
 
 ### 10.3 Scheduling and coordination candidate
 
@@ -841,8 +844,8 @@ This is a provisional evidence classification for future design discussion. It i
 | PPG / MAX30101 | **Potentially complementary candidate**; peripheral cardiovascular information; cross-sensor validation; fusion input | Adds peripheral pulse/perfusion information and can cross-check ECG, but PRV, morphology, PAT, and SpO₂ require separate validation and exact board/placement knowledge. | **Moderate** for pulse/context role; **low-moderate** for AUD-specific role. |
 | EDA / legacy tinyGSR | **Potentially complementary candidate**; sympathetic-arousal information; longitudinal/fusion input | Provides a physiologically different sudomotor channel with cue/stress research relevance, but the legacy board's relative output and nonspecificity limit comparability and interpretation. | **Moderate** for EDA physiology/context; **low-moderate** for AUD-specific role. |
 | Peripheral temperature / TMP117 | **Primarily contextual/artifact-management candidate**; peripheral physiological information; exploratory trend input | Useful for thermal/perfusion context and interpretation of PPG/EDA, but local die temperature and poor alcohol specificity limit it as a primary AUD-related feature. | **Moderate** for context role; **low** for standalone AUD role. |
-| IMU / MPU6050 | **Primarily contextual/artifact-management candidate** and **potentially complementary candidate**; movement/activity; tremor/restlessness; quality flags | Strong rationale for motion context and PPG artifact handling; moderate evidence for withdrawal-tremor quantification; generic movement remains nonspecific. | **High** for context/artifact role; **moderate** for tremor research; **low** for standalone AUD inference. |
-| ESP32 | **Acquisition/controller platform candidate**, outside physiological sensor-inclusion classification | Can coordinate acquisition, interfaces, timestamps, buffering, and transport; it has no intrinsic AUD meaning. Exact carrier behavior and synchronization quality remain open. | **Moderate-high** for general platform role; **low** for exact board-level claims until verified. |
+| IMU / MPU-6050 | **Primarily contextual/artifact-management candidate** and **potentially complementary candidate**; movement/activity; tremor/restlessness; quality flags | Strong rationale for motion context and PPG artifact handling; moderate evidence for withdrawal-tremor quantification; generic movement remains nonspecific. | **High** for context/artifact role; **moderate** for tremor research; **low** for standalone AUD inference. |
+| ESP32 | **Acquisition/controller platform candidate**, outside physiological sensor-inclusion classification | Can coordinate acquisition, interfaces, timestamps, buffering, and transport; it has no intrinsic AUD meaning. Exact carrier behavior and synchronization quality remain open. | **Moderate-high** for general platform role; **low** for carrier-specific behavior until verified. |
 
 The labels identify what the evidence currently supports each channel doing. They do not settle whether any candidate is necessary, redundant, practical, or suitable for a later physical architecture.
 
@@ -850,12 +853,12 @@ The labels identify what the evidence currently supports each channel doing. The
 
 ### Hardware identity and implementation
 
-- Exact tinyGSR 11/22 schematic, firmware, ADC path, trimmer setting, and revision match.
-- Exact CJMCU VS82 schematic, passive component values, gain, filter cutoffs, electrode/RLD topology, and output range.
-- Exact SmartElex MAX30101 schematic, optical window, LED settings, power conversion, and software.
-- Exact SmartElex TMP117 board thermal path, exposed sensing surface, response time, offset, and neighboring heat sources.
-- Exact GY-521 regulator, pull-ups, filtering, board orientation, mounting, and genuine MPU-6050 identity.
-- Exact ESP32 30-pin carrier manufacturer/revision, ADC routing, regulator, USB interface, and RF/power behavior.
+- Exact PC-tinyGSR 12/22 schematic, firmware/ADC path, I²C address, trimmer transfer function, and quantitative calibration.
+- Exact CJMCU V502 schematic, passive component values, gain, filter cutoffs, electrode/RLD topology, output range, and analog performance.
+- Exact SmartElex MAX30101 schematic, optical window, LED settings, power conversion, address convention, interrupt behavior, and software; physical `INT` exposure is verified.
+- Exact SmartElex TMP117 board thermal path, selected address, exposed sensing surface, response time, offset, and neighboring heat sources; `INT` and address-selection markings are visible.
+- Exact GY-521 regulator, pull-ups, filtering, board orientation, mounting, genuine-vs-compatible MPU-6050 status, and performance; board marking, main IC, and connector pins are verified.
+- Exact ESP32 30-pin carrier manufacturer/revision, USB-UART device, regulator, ADC routing/performance, and RF/power behavior; carrier marking, module family, pins, USB, and buttons are verified.
 
 ### Measurement validity
 
@@ -946,16 +949,17 @@ The ledger records sources supporting important claims. **EM** means the source 
 
 | ID | Claim supported | Source | Source type | DOI or stable URL | Strength | Notes / provenance |
 |---|---|---|---|---|---|---|
-| H1 | AD8232 is a single-lead ECG/biopotential conditioning front end with filtering, gain, lead-off, and RLD-related features | Analog Devices, **AD8232 product page** | Manufacturer documentation | [analog.com/en/products/ad8232.html](https://www.analog.com/en/products/ad8232.html) | A for IC capability | EM; IC capability, not VS82 board implementation. |
-| H2 | AD8232 output is an amplified/filtered biopotential suitable for host ADC acquisition; filter settings are circuit-dependent | Analog Devices, **AD8232 Rev. D datasheet** | Manufacturer datasheet | [AD8232.pdf](https://www.analog.com/media/en/technical-documentation/data-sheets/AD8232.pdf) | A for IC capability | **SV; newly added.** Does not establish exact CJMCU VS82 passives. |
+| INV | Physical board identities, visible board features, and basic prior working status | Project, **hardware inventory** | Direct physical inspection / project record | [hardware_inventory.md](hardware_inventory.md) | A for listed observations; not validation | Canonical local source; does not establish signal quality, timing, calibration, or clinical performance. |
+| H1 | AD8232 is a single-lead ECG/biopotential conditioning front end with filtering, gain, lead-off, and RLD-related features | Analog Devices, **AD8232 product page** | Manufacturer documentation | [analog.com/en/products/ad8232.html](https://www.analog.com/en/products/ad8232.html) | A for IC capability | EM; IC capability, not V502 board implementation. |
+| H2 | AD8232 output is an amplified/filtered biopotential suitable for host ADC acquisition; filter settings are circuit-dependent | Analog Devices, **AD8232 Rev. D datasheet** | Manufacturer datasheet | [AD8232.pdf](https://www.analog.com/media/en/technical-documentation/data-sheets/AD8232.pdf) | A for IC capability | **SV; newly added.** Does not establish exact CJMCU V502 passives. |
 | H3 | MAX30101 contains red/IR/green LEDs, photodetector, optical electronics, ambient-light rejection, FIFO, and current ADC | Analog Devices, **MAX30101 product page and datasheet** | Manufacturer documentation/datasheet | [product page](https://www.analog.com/en/products/max30101.html); [datasheet](https://www.analog.com/media/en/technical-documentation/data-sheets/MAX30101.pdf) | A for IC capability | EM; raw optical capability is not a validated clinical algorithm. |
 | H4 | TMP117 is a local digital temperature sensor with high specified IC accuracy | Texas Instruments, **TMP117 product page** | Manufacturer documentation | [ti.com/product/TMP117](https://www.ti.com/product/TMP117) | A for IC capability | EM; local/die measurement boundary retained. |
 | H5 | TMP117 resolution/accuracy and thermal/self-heating specifications apply to the IC, not automatically to skin | Texas Instruments, **TMP117 Rev. D datasheet** | Manufacturer datasheet | [tmp117.pdf](https://www.ti.com/lit/ds/symlink/tmp117.pdf) | A for IC capability; B/C for skin estimate | **SV; newly added.** Breakout thermal coupling remains open. |
 | H6 | MPU-6050 is a 6-axis I²C inertial sensor with selectable accelerometer/gyro ranges; obsolete status | TDK Product Center, **MPU-6050** | Manufacturer documentation | [TDK product center](https://product.tdk.com/en/search/sensor/mortion-inertial/imu/info?part_no=MPU-6050) | A for IC capability | EM; GY-521 board details remain board-specific. |
 | H7 | MPU-6050 product specification and register map describe digital axis output and ranges | InvenSense/TDK, **MPU-6000/MPU-6050 Product Specification** | Manufacturer datasheet | [MPU-6000-Datasheet.pdf](https://invensense.tdk.com/wp-content/uploads/2015/02/MPU-6000-Datasheet.pdf) | A for IC capability | **SV; newly added.** Not a GY-521 schematic. |
-| H8 | ESP-WROOM-32-family module provides general MCU, GPIO, digital interfaces, ADC, Wi-Fi, and Bluetooth | Espressif, **ESP32-WROOM-32 datasheet** | Manufacturer datasheet | [Espressif datasheet](https://documentation.espressif.com/esp32-wroom-32_datasheet_en.html) | A for platform capability | EM; generic DevKit V1 carrier remains unverified. |
-| H9 | Current tinyGSR v3 page distinguishes v3 absolute µS from original relative trimmer-set board | ProtoCentral, **tinyGSR product/history page** | Manufacturer/product documentation | [protocentral.com tinyGSR](https://protocentral.com/product/protocentral-tinygsr-gsr-eda-digital-output-sensor-board-qwiic-stemma-qt/) | B for exact legacy-board history | EM; current page is not an independent match to PCB 11/22. |
-| H10 | Legacy tinyGSR tutorial documents original implementation/baseline adjustment | ProtoCentral, **legacy tinyGSR tutorial** | Manufacturer-associated tutorial | [Hackster legacy tutorial](https://www.hackster.io/protocentral/measuring-emotions-with-gsr-using-tinygsr-arduino-1f038e) | C for exact 11/22 board | EM; used cautiously because exact revision is unresolved. |
+| H8 | ESP-WROOM-32-family module provides general MCU, GPIO, digital interfaces, ADC, Wi-Fi, and Bluetooth | Espressif, **ESP32-WROOM-32 datasheet** | Manufacturer datasheet | [Espressif datasheet](https://documentation.espressif.com/esp32-wroom-32_datasheet_en.html) | A for platform capability | EM; exact carrier implementation remains unverified. |
+| H9 | Current tinyGSR v3 page distinguishes v3 absolute µS from original relative trimmer-set board | ProtoCentral, **tinyGSR product/history page** | Manufacturer/product documentation | [protocentral.com tinyGSR](https://protocentral.com/product/protocentral-tinygsr-gsr-eda-digital-output-sensor-board-qwiic-stemma-qt/) | B for legacy-board family history | EM; current page is not an independent electrical match to physical PCB 12/22. |
+| H10 | Legacy tinyGSR tutorial documents original implementation/baseline adjustment | ProtoCentral, **legacy tinyGSR tutorial** | Manufacturer-associated tutorial | [Hackster legacy tutorial](https://www.hackster.io/protocentral/measuring-emotions-with-gsr-using-tinygsr-arduino-1f038e) | C for legacy-board electrical behavior | EM; used cautiously because exact 12/22 electrical revision remains unresolved. |
 | H11 | Reseller listing identifies a SmartElex MAX30101 photodetector breakout | The Engineer Store, **SmartElex MAX30101 listing** | Reseller listing | [theengineerstore.in MAX30101](https://www.theengineerstore.in/products/smartelex-photodetector-breakout-max30101) | D for board identity only | EM; not primary schematic or clinical validation. |
 | H12 | Reseller listing identifies a SmartElex TMP117 breakout | The Engineer Store, **SmartElex TMP117 listing** | Reseller listing | [theengineerstore.in TMP117](https://www.theengineerstore.in/collections/sensors/products/smartelex-high-precision-temperature-sensor-tmp117) | D for board identity only | EM; not primary schematic or thermal validation. |
 | H13 | Wearable temperature interpretation depends on thermal contact and isolation from heat sources | Texas Instruments, **wearable temperature design guidance** | Manufacturer application guidance | [TI SSZT563](https://www.ti.com/document-viewer/lit/html/SSZT563) | B for skin-coupling rationale | EM. |

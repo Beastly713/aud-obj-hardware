@@ -2,7 +2,7 @@
 
 **Status:** novelty-space exploration / engineering research input  
 **Date:** 2026-09-10  
-**Repository context reviewed:** `docs/aud_multimodal_hardware_evidence_map.md`, `docs/aud_sensor_role_definition.md`, and `docs/aud_hardware_form_factor_options.md`
+**Repository context reviewed:** `docs/aud_multimodal_hardware_evidence_map.md`, `docs/aud_sensor_role_definition.md`, `docs/aud_hardware_form_factor_options.md`, and the [canonical hardware inventory](hardware_inventory.md)
 
 ## 1. Purpose and Scope
 
@@ -51,12 +51,12 @@ The repository currently defines an **exploratory multimodal physiological acqui
 
 The present candidate stack is:
 
-1. ESP32 DevKit V1, 30-pin, ESP-WROOM-32-family controller.
-2. ProtoCentral tinyGSR legacy GSR/EDA board, PCB marking 11/22.
-3. CJMCU-8232 AD8232 single-lead ECG module, PCB marking VS82.
-4. SmartElex MAX30101 PPG breakout.
-5. SmartElex TMP117 temperature breakout.
-6. GY-521 MPU-6050 accelerometer + gyroscope board.
+1. ESP32 DEVKITV1, 30-pin, ESP-WROOM-32-family controller board.
+2. ProtoCentral PC-tinyGSR legacy EDA/GSR board, PCB marking 12/22.
+3. CJMCU-8232 AD8232 single-lead ECG/heart-monitor module, PCB marking V502.
+4. SmartElex MAX30101 PPG/Photodetector breakout board.
+5. SmartElex TMP117 digital temperature sensor breakout board.
+6. GY-521 MPU-6050 6-axis accelerometer + gyroscope IMU module.
 
 The repository carefully distinguishes **IC capability**, **breakout-board implementation**, and **verified behavior of the exact physical module**. Important board-level questions remain unresolved, including exact ECG filter/gain networks, the legacy tinyGSR transfer function and comparability, the SmartElex optical/thermal constructions, GY-521 board details, ESP32 ADC/timing behavior, and the mechanical coupling that would be required for real body-worn use.
 

@@ -44,12 +44,14 @@ The current candidate hardware is development-oriented rather than wearable-prod
 
 | Candidate | Current project role | Physical/form-factor boundary that matters here |
 |---|---|---|
-| **ESP32 DevKit V1, 30-pin, ESP-WROOM-32-family** | Acquisition, timestamping, buffering, coordination, transport | “DevKit V1” is not one uniquely controlled carrier design. Exact regulator, ADC routing, RF/power behavior, connectors, dimensions, and pin exposure must be verified on the actual unit before a packaging claim is locked. |
-| **ProtoCentral tinyGSR, legacy board, PCB 11/22** | Relative EDA/GSR channel unless exact calibration is proved | Electrodes and skin site matter more than the controller-board position. Exact legacy-board revision/electrode implementation remains unresolved. |
-| **CJMCU-8232 / AD8232, PCB VS82** | Conditioned single-lead ECG-like analog waveform | The AD8232 IC is documented, but exact VS82 gain/filter/RLD/passive implementation is not. The electrode geometry and cable/front-end arrangement are therefore part of the prototype, not an incidental accessory. |
-| **SmartElex MAX30101 breakout** | Reflective optical PPG acquisition | The MAX30101 IC is documented; the exact SmartElex optical window, shielding, contact surface and mechanical retention are not verified. An IC suitable for reflectance PPG does not make an arbitrary breakout mechanically suitable for every anatomical site. |
-| **SmartElex TMP117 breakout** | Local temperature/context channel | The sensor must be thermally coupled to the intended skin site and isolated from competing heat sources. A general breakout board is not automatically a validated skin-temperature probe. |
-| **GY-521 / MPU-6050** | Local/gross motion, orientation, tremor and artifact context | IMU interpretation changes with body segment, orientation and mounting stiffness. A controller-mounted IMU is not automatically representative of motion at a remote optical or electrode interface. |
+| **ESP32 DEVKITV1, 30-pin, ESP-WROOM-32-family controller board** | Acquisition, timestamping, buffering, coordination, transport | The physical carrier marking, 30-pin format, module family, Micro-USB, EN/BOOT buttons, and standard header labels are verified. Exact carrier manufacturer, regulator, ADC routing/performance, connectors, dimensions, and RF/power behavior remain unresolved before a packaging claim is locked. |
+| **ProtoCentral PC-tinyGSR, legacy EDA/GSR board, PCB marking 12/22** | Relative EDA/GSR channel unless exact calibration is proved | Direct inspection verifies the board identity, Qwiic-style connectors, 3.5 mm electrode connector, `BASELINE` trimmer, and `L324` marking. Electrodes and skin site matter more than controller-board position; exact ADC/interface, trimmer transfer, and quantitative calibration remain unresolved. |
+| **CJMCU-8232 AD8232 single-lead ECG/heart-monitor module, PCB marking V502** | Conditioned single-lead ECG-like analog waveform | The board identity, AD8232 IC, labeled supply/output/leads-off connections, and electrode connections are verified. Exact V502 gain/filter/RLD/passive implementation is not characterized, so electrode geometry and cable/front-end arrangement remain part of the prototype. |
+| **SmartElex MAX30101 PPG/Photodetector breakout board** | Reflective optical PPG acquisition | The board identity and exposed `INT` are verified; its silkscreen `ADR: 0x52` remains only a physical observation, not a verified 7-bit address. The exact optical window, shielding, contact surface, power/address implementation, and mechanical retention remain unresolved. |
+| **SmartElex TMP117 digital temperature sensor breakout board** | Local temperature/context channel | Exposed `INT`, address-selection markings, and a narrowed/cut-out sensor region are verified. The region appears intended to reduce thermal coupling, but the selected address, complete thermal path, and quantitative skin-temperature behavior remain unresolved; a general breakout is not automatically a validated skin-temperature probe. |
+| **GY-521 MPU-6050 6-axis accelerometer + gyroscope IMU module** | Local/gross motion, orientation, tremor and artifact context | The board marking, main IC, and connector pins are verified. IMU interpretation still changes with body segment, orientation and mounting stiffness; regulator, pull-ups, silicon status, performance, and mounting behavior remain unresolved. |
+
+The physical identities and visible features in this table come from the [canonical hardware inventory](hardware_inventory.md). It also records basic prior working status for the ESP32 and all five sensor boards; that status does not establish signal quality, timing, calibration, or validation.
 
 ### Three maturity layers must remain separate
 
@@ -103,7 +105,7 @@ Conventional Ag/AgCl gel electrodes provide well-established contact for short/m
 
 #### Motion and cable implications
 
-**ENGINEERING INFERENCE:** if the current VS82 breakout is used, keeping the AD8232 front end physically close to the ECG electrodes is preferable to routing long high-impedance electrode leads across the body. The conditioned analog output can then travel a more controlled path to the ADC, or a local node can digitize it near the chest. This is not a final architecture decision; it is a reason to test chest-local acquisition against a central-controller harness.
+**ENGINEERING INFERENCE:** if the current V502 breakout is used, keeping the AD8232 front end physically close to the ECG electrodes is preferable to routing long high-impedance electrode leads across the body. The conditioned analog output can then travel a more controlled path to the ADC, or a local node can digitize it near the chest. This is not a final architecture decision; it is a reason to test chest-local acquisition against a central-controller harness.
 
 **DESIGN HYPOTHESIS:** a chest ECG module with a local IMU may provide a better artifact reference than an IMU located only on a wrist controller because electrode-interface motion is local.
 
@@ -175,7 +177,7 @@ Recent work has explored chest/back/torso EDA for integrated wearable systems. R
 
 Finger/palm electrodes can interfere with hand use and are prone to pressure/motion artifact during manipulation. Wrist electrodes are easier to wear but may sacrifice response sensitivity. Sweat saturation, skin hydration, electrode pressure, temperature and motion affect both.
 
-**Exact tinyGSR constraint:** the legacy 11/22 board remains a relative-output device unless calibration is proven. Physical placement experiments should therefore emphasize within-unit repeatability, stable electrode material/area/contact, and within-person response quality before attempting cross-site amplitude comparisons.
+**Exact tinyGSR constraint:** the verified legacy 12/22 board remains a relative-output device unless calibration is proven. Physical placement experiments should therefore emphasize within-unit repeatability, stable electrode material/area/contact, and within-person response quality before attempting cross-site amplitude comparisons.
 
 **Form-factor implication:** EDA is one of the strongest reasons not to force every modality onto the wrist. A hand/finger module may be scientifically preferable for controlled sessions even if it is not the long-term ambulatory choice.
 
@@ -842,7 +844,7 @@ These are classes, not a ranking or final design selection.
 
 ### Anatomical-placement validation
 
-1. Which single-lead ECG electrode pair gives sufficiently stable R-peak timing with the exact VS82 board under rest, posture changes and normal movement?
+1. Which single-lead ECG electrode pair gives sufficiently stable R-peak timing with the exact V502 board under rest, posture changes and normal movement?
 2. How much signal-quality loss occurs when PPG moves from finger to wrist or ear using the exact optical hardware/fixture?
 3. How much EDA response sensitivity is lost when moving from palm/finger to wrist with the exact legacy tinyGSR electrode configuration?
 4. Which local temperature site best serves the intended *contextual* question, and can the TMP117 breakout be thermally coupled repeatably there?

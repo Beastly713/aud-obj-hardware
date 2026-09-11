@@ -57,12 +57,12 @@ The strongest general answer is not one single project. It is a combination of s
 
 | Question | Build-first answer |
 |---|---|
-| Can the current BOM produce first useful signals? | **Yes, with board verification and proper fixtures.** No current component needs to be discarded before first-light testing. |
+| Can the current BOM produce first useful signals? | **Yes, with targeted electrical checks and proper fixtures.** No current component needs to be discarded before first-light testing. |
 | Is one classic ESP32 sufficient for V1? | **Yes for a centralized first baseline**, provided ECG uses ADC1, acquisition timing is decoupled from task scheduling, FIFO/buffering are explicit, and local storage is primary. EmotiBit is direct precedent for ESP32 + MAX30101 + EDA + temperature + IMU. |
 | Is the ESP32 ADC the best ECG digitizer? | **No.** It is acceptable for first-light waveform/R-peak work, but its noise/reference/linearity limitations create avoidable uncertainty for serious ECG/HRV work. |
 | Should AD8232 be discarded now? | **No.** Use it to prove the existing path. Upgrade only after comparing it with a dedicated AFE/ADC. |
 | Is legacy tinyGSR usable? | **Yes for relative EDA**, if it is electrically stable. Do not infer universal absolute µS from it. |
-| Is the SmartElex MAX30101 worth using? | **Yes for research bring-up**, after verifying board identity/power/pins and building a controlled optical fixture. Its main uncertainty is breakout/mechanics, not whether MAX30101 can measure PPG. |
+| Is the SmartElex MAX30101 worth using? | **Yes for research bring-up**, after checking power/address behavior and building a controlled optical fixture. Its main uncertainty is breakout/mechanics, not whether MAX30101 can measure PPG. |
 | Is TMP117 useful? | **Yes, but only as a sensor whose thermal interface must be engineered.** Early skin-contact trends are feasible; a flex/thermal island is the stronger later path. |
 | Is MPU-6050 sufficient? | **Yes for V1 motion/tremor/artifact experiments.** A modern FIFO/timestamp-oriented IMU is an optimization, not a prerequisite. |
 | What is strongly missing from the present BOM? | **Battery-only body-connected operation, local nonvolatile logging, controlled electrodes/fixtures, and validation tools/procedures.** |
@@ -72,25 +72,28 @@ The strongest general answer is not one single project. It is a combination of s
 
 ## 2. Current Project State Derived from Repository
 
-The repository contains four large project documents and no implementation code at the time of this review:
+The repository contains the existing research documents, the canonical physical inventory, and no implementation code at the time of this review:
 
 - `docs/aud_multimodal_hardware_evidence_map.md`
 - `docs/aud_sensor_role_definition.md`
 - `docs/aud_hardware_form_factor_options.md`
 - `docs/aud_novelty_hypothesis_map.md`
+- `docs/hardware_inventory.md`
 
-All four were read in full before external implementation research. [S01–S04]
+The four research documents were read in full before external implementation research; the physical-board observations below are reconciled against the [canonical hardware inventory](hardware_inventory.md). [S01–S04]
 
 ### 2.1 Current candidate hardware
 
 | Current candidate | Intended role | Repository-established boundary |
 |---|---|---|
-| ESP32 DevKit V1, 30-pin, ESP-WROOM-32-family | acquisition, timing, buffering, control, transport | “DevKit V1” is not one controlled carrier design; exact regulator/USB/pin routing must be inspected on the physical board. |
-| ProtoCentral tinyGSR, legacy PCB 11/22 | EDA/GSR | treat as **relative** unless exact legacy transfer/calibration is demonstrated; board revision uncertainty remains. |
-| CJMCU-8232 / AD8232, PCB VS82 | conditioned single-lead ECG-like waveform | AD8232 IC is known; exact VS82 gain/filter/reference/RLD implementation is not. |
-| SmartElex MAX30101 breakout | raw reflective PPG | MAX30101 IC is known; exact breakout schematic and optical mechanics are not verified. |
-| SmartElex TMP117 breakout | local/peripheral temperature | TMP117 IC performance does not establish skin-temperature accuracy for this breakout. |
-| GY-521 / MPU-6050 | motion, activity, tremor, artifact context | MPU-6050 is well known, but exact GY-521 carrier/genuine-part status and mounting behavior must be verified. |
+| ESP32 DEVKITV1, 30-pin, ESP-WROOM-32-family controller board | acquisition, timing, buffering, control, transport | The carrier marking, 30-pin format, module family, Micro-USB, EN/BOOT buttons, and standard header labels are verified; exact carrier manufacturer, USB-UART device, regulator, and ADC performance remain unresolved. |
+| ProtoCentral PC-tinyGSR legacy EDA/GSR board, PCB marking 12/22 | EDA/GSR | treat as **relative** unless exact legacy transfer/calibration is demonstrated; the `BASELINE` trimmer and `L324` marking are visible, while the ADC/interface, address, and transfer function remain unresolved. |
+| CJMCU-8232 AD8232 single-lead ECG/heart-monitor module, PCB marking V502 | conditioned single-lead ECG-like waveform | AD8232 IC and labeled board connections are verified; exact V502 gain/filter/reference/RLD/passive implementation and analog performance remain unresolved. |
+| SmartElex MAX30101 PPG/Photodetector breakout board | raw reflective PPG | Board identity and exposed `INT` are verified; silkscreen `ADR: 0x52` is only a physical observation, and the actual address convention, schematic, and optical mechanics remain unresolved. |
+| SmartElex TMP117 digital temperature sensor breakout board | local/peripheral temperature | Exposed `INT`, address-selection markings, and a narrowed/cut-out sensor region are verified; the selected address and thermal path remain unresolved, and TMP117 IC performance does not establish skin-temperature accuracy for this breakout. |
+| GY-521 MPU-6050 6-axis accelerometer + gyroscope IMU module | motion, activity, tremor, artifact context | Board marking, MPU-6050 IC, and connector pins are verified; exact carrier electronics, genuine-vs-compatible silicon status, and mounting behavior remain unresolved. |
+
+The inventory records basic prior working status for the ESP32 and all five sensor boards. This is evidence of basic functional operation only; signal quality, timing, calibration, and validation remain separate tasks.
 
 ### 2.2 Physiological output boundaries retained from the repository
 
@@ -125,7 +128,7 @@ This table is the fastest route through the report.
 | 2 | **MAXREFDES100** | EXACT + FUNCTIONAL + ARCHITECTURE | **R1/R2** | Exact MAX30101 plus dedicated ECG AFE, temperature, motion, local flash; manufacturer-built/tested | complete block diagram, schematics, MAX30101 register workflow, interrupt-driven firmware, ECG cable/power guidance |
 | 3 | **HealthyPi 5** | FUNCTIONAL + ARCHITECTURE | **R1** | Open multi-AFE biosignal system with acquisition MCU separated from ESP32-C3 RF MCU | RP2040 sensor ownership, UART RF bridge, microSD, MAX30001/AFe4400 integration, lossless broker |
 | 4 | **HealthyPi Move** | FUNCTIONAL + ARCHITECTURE | **R1/R2** | Shipping open wearable already combines ECG + PPG + EDA + temp + IMU | physical partitioning, nRF5340/Zephyr acquisition, local flash, open PCB/enclosure |
-| 5 | **SparkFun AD8232** | EXACT | **R1** | Clean open AD8232 board with schematic/PCB/demo and known electrodes | compare VS82 board against SparkFun schematic; reproduce first ECG waveform |
+| 5 | **SparkFun AD8232** | EXACT | **R1** | Clean open AD8232 board with schematic/PCB/demo and known electrodes | compare V502 board against SparkFun schematic; reproduce first ECG waveform |
 | 6 | **ProtoCentral ADS1292R** | FUNCTIONAL | **R1** | 24-bit dedicated ECG/respiration AFE, DRDY/SPI, open HW/SW, ESP32-compatible pattern | replacement benchmark for ECG ADC path |
 | 7 | **ProtoCentral tinyGSR v3** | FUNCTIONAL / near-family | **R1** | Open deterministic EDA front end + TLA2022 + calibration reference | quantitative replacement if legacy board is unstable/noncomparable |
 | 8 | **TI TIDA-060034** | EXACT (TMP117) | **R2** | Exact TMP117 body-temperature flex reference with dual sensors and design files | flex geometry; system/ambient compensation; thermal separation |
@@ -429,9 +432,9 @@ The public repository includes a BLE wearable using ECG, PPG and electrical bioi
 
 ## 5. ECG Reference Solutions
 
-### 5.1 Current path: CJMCU-8232 / AD8232 → ESP32 ADC
+### 5.1 Current path: CJMCU-8232 V502 AD8232 → ESP32 ADC
 
-**Reference type:** EXACT at AD8232 IC level; R3 for the exact `VS82` CJMCU module because its passive network is still unverified.
+**Reference type:** EXACT at AD8232 IC level; R3 for the exact `V502` CJMCU module because its passive network is still uncharacterized.
 
 The first objective is not diagnostic ECG. It is:
 
@@ -467,7 +470,7 @@ Analog Devices documents:
 - input current-limiting resistors;
 - complete evaluation-board schematic. [S25]
 
-This is critical because the current VS82 board’s passives are unknown. Before interpreting waveform morphology, photograph/read/measure the VS82 passives and compare their topology with a known AD8232 design.
+This is critical because the current V502 board’s passive network is uncharacterized. Before interpreting waveform morphology, read/measure the V502 passives and compare their topology with a known AD8232 design; use the inventory photographs as the identity baseline.
 
 ### 5.2 Is the classic ESP32 ADC genuinely adequate?
 
@@ -492,7 +495,7 @@ The reasons are concrete:
 - keep Wi-Fi off during the first noise characterization;
 - A/B test RF off/on later;
 - log locally rather than making serial/Wi-Fi success part of the definition of acquisition success;
-- retain leads-off state if the VS82 exposes LO+/LO−.
+- retain the exposed leads-off state from the V502 board's `LO+`/`LO−` connections.
 
 The proposed 250–500 SPS range is an engineering target for this project, not a claim that AD8232 requires that rate.
 
@@ -555,7 +558,7 @@ ProtoCentral’s current MAX30001 breakout documentation specifies single-lead E
 
 | Path | Complexity | Signal-confidence ceiling | Implementation evidence | HR/RR suitability | HRV research suitability | Main risk | Recommendation |
 |---|---|---:|---|---|---|---|---|
-| CJMCU AD8232 → ESP32 ADC1 | Lowest | Medium | R3 exact module / R1 IC refs | Good if clean | Conditional | ADC noise + unknown VS82 filters | **Use first** |
+| CJMCU AD8232 → ESP32 ADC1 | Lowest | Medium | R3 exact module / R1 IC refs | Good if clean | Conditional | ADC noise + unknown V502 filters | **Use first** |
 | AD8232 → generic precision ADC | Medium | Medium-high | depends on ADC | Good | Better if validated | added ADC without ECG-specific benefits | H3 |
 | ProtoCentral ADS1292R | Medium | High | **R1** | Strong | Strong | extra SPI/board | **H2 benchmark/upgrade** |
 | MAX30001/MAX30003 | Medium | High | **R1/R2** | Strong | Strong | integration learning | **H2 benchmark/upgrade** |
@@ -590,8 +593,9 @@ The MAX30101 IC is not the weak-evidence part of this path. It has unusually str
 
 The SmartElex-specific uncertainties are:
 
-- exact regulator/level interface;
-- whether `INT` is broken out;
+- exact regulator/level interface and schematic;
+- address convention behind the physical silkscreen observation `ADR: 0x52` (not yet a verified 7-bit address);
+- interrupt behavior and driver semantics, although `INT` is physically exposed;
 - PCB optical aperture/guarding;
 - mechanical flatness and sensor-to-skin spacing;
 - ambient-light shielding;
@@ -683,11 +687,11 @@ At rest:
 
 ## 7. EDA Reference Solutions
 
-### 7.1 Legacy tinyGSR — what it can honestly do
+### 7.1 Current ProtoCentral PC-tinyGSR 12/22 — what it can honestly do
 
 **Current decision:** retain for first baseline as a **relative EDA sensor**.
 
-The repository’s caution is correct: the exact legacy PCB 11/22 transfer function is not yet controlled. ProtoCentral’s current documentation and legacy support context indicate the tinyGSR family uses a TLA2022-class digital ADC path, and the historical board family has revision-dependent analog behavior. [S33–S35]
+The repository’s caution is correct: the exact legacy PCB 12/22 transfer function is not yet controlled. The physical inventory verifies the `BASELINE` trimmer and `L324` analog-IC marking, but the ADC/interface IC, I²C address, trimmer transfer function, raw-value-to-conductance conversion, and quantitative calibration remain unresolved. ProtoCentral’s current documentation and legacy support context indicate the tinyGSR family uses a TLA2022-class digital ADC path, and the historical board family has revision-dependent analog behavior. [S33–S35]
 
 The legacy board should be tested as:
 
@@ -781,7 +785,9 @@ For controlled research:
 
 ### 8.1 Current SmartElex TMP117 — electrically good, mechanically unresolved
 
-The TMP117 IC itself is a high-quality digital temperature sensor. The project’s main risk is **thermal path**, not I²C.
+The TMP117 IC itself is a high-quality digital temperature sensor. The physical inventory verifies exposed `INT`, address-selection markings for `0x48`–`0x4B`, and a narrowed/cut-out central sensor region. The project’s main risk is **thermal path**, not I²C; the selected address and exact electrical implementation still require verification.
+
+The narrowed/cut-out region appears intended to reduce thermal coupling, but it does not guarantee accurate skin temperature. The complete thermal path, contact bias, self-heating, and quantitative isolation still require validation.
 
 The first question is:
 
@@ -849,14 +855,14 @@ SparkFun and Adafruit publish open TMP117 breakout hardware and libraries. These
 
 **Decision:** keep for V1.
 
-The MPU-6050 is old, but the basic requirements here are modest:
+The physical inventory verifies the GY-521 marking, MPU-6050 main IC, and exposed `VCC`, `GND`, `SCL`, `SDA`, `XDA`, `XCL`, `AD0`, and `INT` pins. Exact regulator, pull-ups, genuine-vs-compatible silicon status, and measured noise/timing performance remain unresolved. The MPU-6050 is old, but the basic requirements here are modest:
 
 - motion/context;
 - hand/wrist tremor spectrum;
 - local optical/electrode motion;
 - gross activity.
 
-Its established range selection and large software ecosystem are sufficient for these experiments if the exact board is genuine/stable.
+Its established range selection and large software ecosystem are sufficient for these experiments if the verified board is electrically stable; genuine-vs-compatible silicon status and measured performance remain open.
 
 ### 9.2 Strongest implementation reference: i2cdevlib
 
@@ -1143,12 +1149,12 @@ A later merged table can interpolate/align for plotting. The acquisition firmwar
 ```text
 Chest ECG electrodes
       │
-   AD8232 ──analog──> ESP32 ADC1
+   CJMCU-8232 V502 AD8232 ──analog──> ESP32 ADC1
                          │
-Finger MAX30101 ─I²C─────┤
-Legacy tinyGSR ──I²C─────┤
-TMP117 ──────────I²C─────┤
-MPU6050 ─────────I²C─────┤
+SmartElex MAX30101 ─I²C─┤
+PC-tinyGSR 12/22 ──I²C──┤
+SmartElex TMP117 ──I²C──┤
+GY-521 MPU-6050 ───I²C──┤
                          ├──SPI── microSD
                          └──BLE/Wi-Fi preview
 ```
@@ -1174,10 +1180,10 @@ MPU6050 ─────────I²C─────┤
 
 ```text
 ECG electrodes → ADS1292R/MAX30001 ─SPI/DRDY─┐
-MAX30101 ─I²C/FIFO─────────────────────────────┤
-tinyGSR ─I²C───────────────────────────────────┤
-TMP117 ─I²C────────────────────────────────────┤
-MPU6050 ─I²C/FIFO──────────────────────────────┤
+ SmartElex MAX30101 ─I²C/FIFO──────────────────┤
+ PC-tinyGSR 12/22 ───I²C───────────────────────┤
+ SmartElex TMP117 ───I²C───────────────────────┤
+ GY-521 MPU-6050 ────I²C/FIFO──────────────────┤
                                               v
                                       acquisition MCU
                                           │      │
@@ -1751,7 +1757,7 @@ A repeatable skin-contact trend with a characterized equilibration time and bias
 
 - **URL:** [S30]
 - **Hardware:** `Hardware/` schematic/board/production assets.
-- **Value:** like-for-like open MAX30101 breakout if SmartElex board uncertainty blocks progress.
+- **Value:** like-for-like open MAX30101 breakout if SmartElex electrical or mechanical uncertainty blocks progress.
 - **R1**.
 
 ### 18.11 `Protocentral/protocentral_tinygsr`
@@ -1817,7 +1823,7 @@ A repeatable skin-contact trend with a characterized equilibration time and bias
 
 ### 19.5 Analog Devices AD8232 evaluation design
 
-**Use/reference this design because:** it exposes the passive/filter/RLD/current-limiting choices hidden by the generic `AD8232 module` label. Compare the VS82 board against it. [S25]
+**Use/reference this design because:** it exposes the passive/filter/RLD/current-limiting choices hidden by the generic `AD8232 module` label. Compare the V502 board against it. [S25]
 
 ### 19.6 Espressif ESP-IDF ADC/timer drivers
 
@@ -1953,7 +1959,7 @@ The table intentionally distinguishes **required-to-build safely/reliably** from
 | **ProtoCentral ADS1292R breakout** | ESP32 ADC noise/reference/linearity; explicit sample timing | AD8232+ESP32 ADC | open HW/SW/DRDY/SPI [S26,S27] | 24-bit dedicated ECG conversion; deterministic timing | extra SPI board/firmware | **H2** | Benchmark after AD8232 first-light |
 | **ProtoCentral MAX30001/MAX30003 breakout** | same ECG bottleneck, wearable-oriented AFE | AD8232+ESP32 ADC | ProtoCentral + MAXREFDES100 [S28,S05] | integrated ECG ADC/R-R/interrupts; compact | extra board/firmware | **H2** | Alternative to ADS1292R |
 | **Modern tinyGSR v3** | legacy board cannot supply reproducible absolute conductance; unknown trimmer transfer | legacy tinyGSR | open deterministic hardware/software [S33,S34] | reproducible/calibratable EDA | purchase + re-baseline | **H2** | When quantitative/cross-session EDA is required |
-| **SparkFun MAX30101 Qwiic breakout** | SmartElex schematic/INT/optical PCB uncertainty | SmartElex MAX30101 | open schematic/PCB/library [S30] | known electrical design | replacement/fixture change | **H2** | Only if SmartElex fails verification |
+| **SparkFun MAX30101 Qwiic breakout** | SmartElex schematic/address/optical PCB uncertainty | SmartElex MAX30101 | open schematic/PCB/library [S30] | known electrical design | replacement/fixture change | **H2** | Only if SmartElex fails verification |
 | **Second/local IMU** | central IMU does not represent PPG/ECG interface motion | MPU-6050 topology | local-IMU research; multimodal refs [S58,S05] | channel-local artifact labels | extra I²C/address/mount | **H3** | Add for artifact experiment, not by default |
 | **BMI270 breakout** | deeper FIFO, modern availability/power/timing | MPU-6050 | Bosch official API [S42] | modern motion acquisition | new driver/calibration | **H3** | Later if current IMU timing/availability fails |
 | **RP2040 acquisition MCU + ESP32-C3 RF split** | RF/task coupling; acquisition determinism | one ESP32 | HealthyPi 5 [S08–S11] | isolates sensing from networking | second MCU/protocol | **H3 initially; H2 if measured issue** | Escalation |
@@ -2000,18 +2006,18 @@ Get **all current sensors producing timestamped raw data together** with the lea
 
 ```text
                          ┌────────────────────────────┐
-Ag/AgCl electrodes ─────>│ CJMCU AD8232 (VS82)       │
+Ag/AgCl electrodes ─────>│ CJMCU-8232 AD8232 (V502) │
                          └──────────┬─────────────────┘
                                     │ analog VOUT
                                     v
                               ESP32 ADC1
                                     │
-MAX30101 (finger fixture) ─ I²C/FIFO┤
-legacy tinyGSR ──────────── I²C ────┤
-TMP117 ──────────────────── I²C ────┤
-MPU6050 ─────────────────── I²C ────┤
+SmartElex MAX30101 (finger fixture) ─ I²C/FIFO┤
+PC-tinyGSR 12/22 ───────────── I²C ───────────┤
+SmartElex TMP117 ───────────── I²C ───────────┤
+GY-521 MPU-6050 ────────────── I²C ───────────┤
                                     │
-                             ESP32 DevKit V1
+                             ESP32 DEVKITV1
                        acquisition + timestamps
                           │                 │
                     SPI microSD       BLE/Wi-Fi
@@ -2022,12 +2028,12 @@ MPU6050 ─────────────────── I²C ───
 
 **Existing**
 
-- ESP32 DevKit V1.
-- CJMCU/AD8232 VS82.
-- SmartElex MAX30101.
-- legacy ProtoCentral tinyGSR.
-- SmartElex TMP117.
-- GY-521 MPU-6050.
+- ESP32 DEVKITV1, 30-pin, ESP-WROOM-32-family controller board.
+- CJMCU-8232 AD8232 single-lead ECG/heart-monitor module, PCB marking V502.
+- SmartElex MAX30101 PPG/Photodetector breakout board.
+- ProtoCentral PC-tinyGSR legacy EDA/GSR board, PCB marking 12/22.
+- SmartElex TMP117 digital temperature sensor breakout board.
+- GY-521 MPU-6050 6-axis accelerometer + gyroscope IMU module.
 
 **Add**
 
@@ -2090,7 +2096,7 @@ One ESP32 monotonic timestamp domain. ECG conversion is peripheral-timed; FIFO b
 
 ### 23.10 Expected problems
 
-- ECG ADC noise and VS82 filter uncertainty;
+- ECG ADC noise and V502 filter uncertainty;
 - EDA only relative;
 - PPG fixture sensitivity;
 - TMP117 thermal lag/bias;
@@ -2143,9 +2149,9 @@ ADS1292R or MAX30001/3
     └───────────────┐
 
 HAND/WRIST
-MAX30101 + MPU6050 ─┼─ I²C
-legacy tinyGSR ─────┤
-TMP117 thermal pod ─┤
+SmartElex MAX30101 + GY-521 MPU-6050 ─┼─ I²C
+PC-tinyGSR 12/22 ─────────────────────┤
+SmartElex TMP117 thermal pod ─────────┤
                     v
              ESP32 controller
          high-res local timestamps
@@ -2370,35 +2376,44 @@ The strongest design is therefore a **reference-derived research instrument**, n
 
 The sequence below is deliberately designed to prevent “integration theater,” where all sensors appear in one UI before any channel is known to be trustworthy.
 
-### Stage 0 — Freeze the physical board inventory
+### Stage 0 — Freeze and reconcile the physical board inventory
 
-**Hardware**
+**Status:** **Physical identification substantially complete.** The direct photographic observations are recorded in the [canonical hardware inventory](hardware_inventory.md), which is the source of truth for the current physical BOM.
 
-All currently owned boards; multimeter; camera/magnifier.
+**Verified current baseline**
+
+- `ESP32 DEVKITV1`, 30-pin, ESP-WROOM-32-family controller board, with Micro-USB, EN/BOOT buttons, and visible standard header labels.
+- ProtoCentral `PC-tinyGSR` legacy EDA/GSR board, PCB marking `12/22`, with a physical `BASELINE` trimmer.
+- `CJMCU-8232` AD8232 single-lead ECG/heart-monitor module, PCB marking `V502`.
+- SmartElex MAX30101 Photodetector board with physically exposed `INT`; its `ADR: 0x52` text remains a silkscreen observation rather than a verified 7-bit address.
+- SmartElex TMP117 board with exposed `INT`, address-selection markings for `0x48`–`0x4B`, and a narrowed/cut-out central sensor region.
+- GY-521 MPU-6050 6-axis accelerometer + gyroscope IMU module with the photographed connector pin set.
+
+The ESP32 and all five sensor boards also have prior basic working status. This confirms previous basic operation, not signal quality, timing, calibration, or validation.
+
+**Remaining on-demand Stage-0 characterization**
+
+The inventory resolves the board identities and visible features but not every electrical property. Before the corresponding signal-validation stage, characterize only what that stage needs: exact ESP32 carrier/USB-UART/regulator/ADC behavior; PC-tinyGSR ADC/interface, address, trimmer transfer and calibration; V502 passive/filter/gain/RLD network; MAX30101 power/address convention/interrupt behavior and optical implementation; TMP117 selected address/thermal path; and GY-521 regulator/pull-ups/silicon status/performance.
 
 **Actions**
 
-- photograph front/back at high resolution;
-- record silkscreen/IC markings;
-- map actual connector pins;
-- measure supply/logic levels;
-- identify onboard regulators/level shifters;
-- run I²C scan;
-- record pull-up resistance;
-- record exposed interrupt pins;
-- trace VS82 AD8232 passive values where possible.
+- preserve the inventory photographs, silkscreen/IC markings, and verified connector maps as the identity baseline;
+- measure supply/logic levels and identify onboard regulators/level shifters where needed for the next signal path;
+- run an I²C scan and record pull-up resistance before integration;
+- use exposed interrupt pins in the relevant signal-validation stages;
+- read/measure the V502 AD8232 passive values and characterize the PC-tinyGSR transfer behavior when those stages require it.
 
 **Expected output**
 
-`hardware_inventory.md` plus images and a machine-readable board/config table.
+`hardware_inventory.md` remains the canonical physical inventory; targeted electrical notes or a machine-readable board/config table may be added as on-demand characterization outputs.
 
 **Pass**
 
-Every wire in later stages can be traced to a verified pin and voltage.
+Every wire in later stages can be traced to a verified board, pin, and voltage, while unresolved electrical properties remain explicitly labeled as unresolved.
 
-**Likely failures**
+**Likely remaining failures**
 
-clone board differs from internet diagram; mislabeled rail; hidden pull-ups; missing `INT`.
+board-specific regulator/pull-up behavior; a physical address differing from a silkscreen or listing convention; uncharacterized passive networks; optical/thermal mechanics; clone-compatible silicon; and measured signal-quality or timing limits.
 
 ---
 
@@ -2410,7 +2425,7 @@ SparkFun AD8232 + Analog Devices eval design. [S23–S25]
 
 **Hardware**
 
-VS82 board, ECG simulator or battery-only human setup, ESP32.
+V502 board, ECG simulator or battery-only human setup, ESP32.
 
 **Software**
 
@@ -2458,15 +2473,15 @@ ambient light, poor pressure, wrong LED settings, board voltage issue, polling t
 
 ---
 
-### Stage 1C — Prove legacy tinyGSR independently
+### Stage 1C — Prove ProtoCentral PC-tinyGSR 12/22 independently
 
 **Reference**
 
-ProtoCentral tinyGSR docs/library and TLA2022 driver. [S33–S35]
+ProtoCentral tinyGSR docs/library and TLA2022 driver, applied to the verified PC-tinyGSR 12/22 board. [S33–S35]
 
 **Hardware**
 
-legacy board, precision resistors/decade box, later two electrodes.
+ProtoCentral PC-tinyGSR 12/22, precision resistors/decade box, later two electrodes.
 
 **Output**
 
@@ -2490,7 +2505,7 @@ TI TIDA-060034 + open TMP117 libraries. [S37,S38]
 
 **Hardware**
 
-current SmartElex board, calibrated thermometer/reference, simple thermal fixture.
+SmartElex TMP117 breakout board, calibrated thermometer/reference, simple thermal fixture.
 
 **Output**
 
@@ -2514,7 +2529,7 @@ i2cdevlib raw/calibration examples. [S41]
 
 **Hardware**
 
-GY-521, rigid mount.
+GY-521 MPU-6050 module, rigid mount.
 
 **Output**
 
@@ -2861,11 +2876,11 @@ The system passes when it **records the failure explicitly** rather than quietly
 ### 30.1 Hardware unknowns that block exact wiring
 
 1. Exact ESP32 DevKit carrier/revision/regulator/ADC pin availability.
-2. Exact CJMCU VS82 passive values and RLD/reference/filter topology.
-3. Exact legacy tinyGSR revision and trimmer/calibration state.
-4. Exact SmartElex MAX30101 schematic, supply regulation and interrupt exposure.
-5. Exact SmartElex TMP117 PCB thermal path and regulator/pull-ups.
-6. Exact GY-521 regulator/pull-ups and whether the MPU-6050 is genuine or compatible clone.
+2. Exact CJMCU V502 passive values and RLD/reference/filter topology.
+3. Exact PC-tinyGSR 12/22 ADC/interface, I²C address, trimmer transfer/calibration state, and quantitative conversion.
+4. Exact SmartElex MAX30101 schematic, supply regulation, address convention, interrupt behavior, and optical implementation; physical `INT` exposure is verified.
+5. Exact SmartElex TMP117 selected address, PCB thermal path, regulator, and pull-ups.
+6. Exact GY-521 regulator/pull-ups, performance, and whether the MPU-6050 is genuine or compatible silicon.
 
 ### 30.2 Measurement unknowns
 
@@ -2904,7 +2919,7 @@ Study, in order: SparkFun AD8232 `Hardware/` + `Software/`; Analog Devices AD823
 All six are good enough to **test** in V1. The strongest caveats are ECG ADC quality, legacy EDA calibration and TMP117 mechanics.
 
 **5. Which current components are likely bottlenecks?**  
-First: ESP32 on-chip ADC as the ECG digitizer. Second: exact VS82 AD8232 passive topology. Third: legacy tinyGSR quantitative reproducibility. Fourth: SmartElex PPG/temp mechanics. The ESP32 CPU itself is not the likely bottleneck.
+First: ESP32 on-chip ADC as the ECG digitizer. Second: exact V502 AD8232 passive topology. Third: legacy tinyGSR quantitative reproducibility. Fourth: SmartElex PPG/temp mechanics. The ESP32 CPU itself is not the likely bottleneck.
 
 **6. What extra components are strongly justified?**  
 Local nonvolatile storage, battery-only body-side power, proper ECG/EDA electrodes, PPG fixture and temperature thermal fixture are H1. A dedicated ECG AFE and modern tinyGSR are H2 benchmark/replacement candidates.
@@ -2922,7 +2937,7 @@ Keep it through first-light and comparative testing. For a stronger controlled b
 **Yes, if fixed-resistor testing shows stable monotonic response.** Keep its output explicitly relative; do not promise universal absolute µS.
 
 **11. Is the SmartElex MAX30101 breakout a practical PPG prototype?**  
-**Yes.** Verify electrical identity and build a controlled optical fixture. Replace with an open SparkFun MAX30101 board only if the SmartElex board itself is the measured problem.
+**Yes.** Verify power/address behavior and build a controlled optical fixture. Replace with an open SparkFun MAX30101 board only if the SmartElex board itself is the measured problem.
 
 **12. How should TMP117 physically contact skin?**  
 Use a small, low-thermal-mass skin-facing contact area/thermal island, mechanically pressed reproducibly against skin and thermally isolated from MCU/regulator/battery/PPG heat. TIDA-060034’s flex architecture and MAXREFDES104/106 metal contact are the strongest references.
@@ -2989,9 +3004,9 @@ All URLs below were opened/verified during this research or were already verifie
 | S20 | Shimmer3R GSR+ | FUNCTIONAL + VALIDATION | GSR, PPG accessory, IMU, microSD, STM32U5 | research EDA/PPG wearable | product docs/sample data; not full open schematic | **R3** | EDA range/placement/reference | https://www.shimmersensing.com/product/shimmer3-gsr-unit/ |
 | S21 | Shimmer sample data | VALIDATION | GSR, PPG, ECG/respiration examples | real raw traces, sampling/placement examples | downloadable sample data | **R2** | “working signal” examples | https://www.shimmersensing.com/support/sample-data/ |
 | S22 | BITalino GitHub organization | FUNCTIONAL + ARCHITECTURE | modular biosignals | open firmware/APIs/hardware portions | source/repositories | **R2/R3** | low-cost modular reference | https://github.com/BITalinoWorld |
-| S23 | SparkFun AD8232 Heart Rate Monitor | EXACT | AD8232 | known working board and analog topology | Eagle schematic/PCB, production, demo | **R1** | compare current VS82 + first ECG | https://github.com/sparkfun/AD8232_Heart_Rate_Monitor |
+| S23 | SparkFun AD8232 Heart Rate Monitor | EXACT | AD8232 | known working board and analog topology | Eagle schematic/PCB, production, demo | **R1** | compare current V502 + first ECG | https://github.com/sparkfun/AD8232_Heart_Rate_Monitor |
 | S24 | SparkFun AD8232 Hookup Guide | EXACT | AD8232 board/electrodes | practical RA/LA/RL placement and first signal | guide/code | **R1** | first-light wiring | https://learn.sparkfun.com/tutorials/ad8232-heart-rate-monitor-hookup-guide |
-| S25 | Analog Devices AD8232 evaluation guide | EXACT | AD8232 | REFOUT, RLD, filtering, input protection, two/three electrode | schematic + circuit explanation | **R2** | understand hidden VS82 passives | https://wiki.analog.com/resources/eval/ad8232-evaluation-guide/a03321a |
+| S25 | Analog Devices AD8232 evaluation guide | EXACT | AD8232 | REFOUT, RLD, filtering, input protection, two/three electrode | schematic + circuit explanation | **R2** | understand hidden V502 passives | https://wiki.analog.com/resources/eval/ad8232-evaluation-guide/a03321a |
 | S26 | ProtoCentral ADS1292R Arduino library | FUNCTIONAL | ADS1292R | DRDY/SPI ECG/respiration acquisition | `src/`, `examples/` | **R1** | ECG upgrade firmware | https://github.com/Protocentral/protocentral-ads1292r-arduino |
 | S27 | ProtoCentral ADS1292R hardware | FUNCTIONAL | ADS1292R breakout/shield | open ECG AFE board, electrode/power guidance | hardware files/docs | **R1** | ECG upgrade hardware | https://github.com/Protocentral/ADS1292rShield_Breakout |
 | S28 | ProtoCentral MAX30001 getting started | FUNCTIONAL | MAX30001 | 18-bit ECG, 128/256/512 SPS, SPI/INT, ESP32 wiring | docs + linked HW/SW | **R1/R2** | wearable ECG alternative | https://protocentral.com/product/protocentral-max30001/docs/getting-started/ |
@@ -3108,7 +3123,7 @@ The practical architecture to reproduce first is:
 
 ```text
 current sensors
-→ exact board verification
+→ canonical inventory plus targeted electrical characterization
 → individual raw-signal proof
 → battery-only body interfaces
 → one ESP32 acquisition timebase
@@ -3126,4 +3141,3 @@ The first likely upgrade is **not a faster MCU**. It is a **dedicated ECG AFE/AD
 The second likely upgrade is **modern quantitative EDA** if relative legacy tinyGSR data cannot support the chosen cross-session research question.
 
 Everything else should be earned by a failure measurement.
-
